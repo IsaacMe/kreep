@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='kreep',
-    version='0.1',
+    version='0.1.1',
     description='Keystroke recognition and entropy elimination program',
     url='http://github.com/vmonaco/kreep',
     author='Vinnie Monaco',
@@ -10,7 +10,7 @@ setup(
     license='GPL',
     packages=['kreep'],
     package_dir={'kreep': 'kreep'},
-    package_data={'kreep': ['kreep/data']},
+    package_data={'kreep': ['kreep/models']},
     entry_points={
         'console_scripts': ['kreep = kreep.__main__:main']
     },
