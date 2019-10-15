@@ -10,7 +10,7 @@ setup(
     license='GPL',
     packages=['kreep'],
     package_dir={'kreep': 'kreep'},
-    package_data={'kreep': ['models']},
+    package_data={'kreep': ['models/*']},
     entry_points={
         'console_scripts': ['kreep = kreep.__main__:main']
     },
