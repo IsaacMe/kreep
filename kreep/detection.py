@@ -99,8 +99,8 @@ def detect_keystrokes(df, website):
     df = df[df['frame_length']>100]
 
     result = []
-    for dst, protocol in df[['dst','protocol']].drop_duplicates().values:
-        df_dst = df[(df['dst']==dst)&(df['protocol']==protocol)]
+    for src, dst, protocol in df[['src', 'dst','protocol']].drop_duplicates().values:
+        df_dst = df[(df['src']==src)&(df['dst']==dst)&(df['protocol']==protocol)]
         idx = longest_dfa_sequence(df_dst['frame_length'].values.tolist(), df_dst['frame_time'].values.tolist(),
                                 append_rule=DETECTION_RULES[website])
 
