@@ -40,7 +40,7 @@ def main(args=None):
                         help='weight of the language model')
 
     args = parser.parse_args(args)
-    hypotheses = kreep(**vars(args))
+    hypotheses = kreep(**vars(args))[0]
     print('\n'.join(hypotheses))
 
 

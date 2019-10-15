@@ -49,7 +49,7 @@ def load_pcap(fname):
                 ip = eth.data
                 if ip.p == dpkt.ip.IP_PROTO_TCP:
                     tcp = ip.data
-                    rows.append((ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.src), ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst), ts*1000, len(tcp.data), ip.p))
+                    rows.append((ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.src) + ':' + str(tcp.sport), ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst) + ':' + str(tcp.dport), ts*1000, len(tcp.data), ip.p))
 
         df = pd.DataFrame(rows, columns=['src','dst','frame_time','frame_length','protocol'])
     return df

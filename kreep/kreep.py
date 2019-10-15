@@ -55,4 +55,4 @@ def kreep(pcap, language, bigrams, k, alpha, website=None):
     # Generate query hypotheses with a language model
     phrases = predict_phrases(word_probas, language, k=k, alpha=alpha)
 
-    return phrases
+    return phrases, keystrokes['frame_time'].max()
