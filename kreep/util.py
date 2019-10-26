@@ -35,7 +35,7 @@ def ip_to_str(ipv6, address):
     return socket.inet_ntop(ip_fam, address)
 
 
-def load_pcap(fname):
+def load_pcap(fname, website):
     '''
     Load a pcap (ng) into a pandas DataFrame
     '''
@@ -47,9 +47,10 @@ def load_pcap(fname):
             eth = dpkt.ethernet.Ethernet(buf)
             if eth.type == dpkt.ethernet.ETH_TYPE_IP or eth.type == dpkt.ethernet.ETH_TYPE_IP6:
                 ip = eth.data
-                if ip.p == dpkt.ip.IP_PROTO_TCP:
+                if ip.p == dpkt.ip.IP_PROTO_TCP and (website != 'google' or is_from_google(ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst))):
                     tcp = ip.data
-                    rows.append((ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.src) + ':' + str(tcp.sport), ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst) + ':' + str(tcp.dport), ts*1000, len(tcp.data), ip.p))
+                    if len(tcp.data) > 0:
+                        rows.append((ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.src) + ':' + str(tcp.sport), ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst) + ':' + str(tcp.dport), ts*1000, len(tcp.data), ip.p))
 
         df = pd.DataFrame(rows, columns=['src','dst','frame_time','frame_length','protocol'])
     return df
@@ -61,6 +62,13 @@ def word2idx(word):
 
 def idx2word(idx):
     return ''.join([INT2KEY[c] for c in idx])
+
+
+def is_from_google(ip):
+    try:
+        return socket.gethostbyaddr(ip)[0].endswith('1e100.net')
+    except socket.herror:
+        return False
 
 
 def load_words(fname):

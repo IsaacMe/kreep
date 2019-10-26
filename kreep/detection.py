@@ -19,10 +19,10 @@ def google_rule(a, e, ta, te):
     if len(a) <= 2 and te - ta > 2000:
         return False
 
-    # Only one decrease allowed
+    # Only one decrease allowed, only possible if gs_mss appeard already
     if d < 0:
         pd = np.diff(a)
-        return len(a) >= 5 and (pd < 0).sum() <= 0
+        return len(a) >= 5 and (pd < 0).sum() <= 0 and (pd >= 4).sum() >= 1
 
     # No consecutive 0s
     if d == 0:
@@ -37,9 +37,10 @@ def google_rule(a, e, ta, te):
     if d == 3:
         return True
 
-    if d >= 4:
+    # Bigger increase is okay, if not to big!
+    if 25 > d >= 4:
         pd = np.diff(a)
-        return len(a) >= 5 and (pd >= 4).sum() <= 2
+        return len(a) >= 5 and (pd >= 4).sum() <= 0
 
     return False
 
@@ -106,6 +107,10 @@ def detect_keystrokes(df, website):
 
         if len(idx) > len(result):
             result = df_dst.iloc[idx]
+
+    # Remove last, if Google makes big jump
+    if website == 'google' and len(result) > 1 and np.diff(result.tail(2)['frame_length'])[0] >= 4:
+        result.drop(result.tail(1).index, inplace=True)
 
     return result
 

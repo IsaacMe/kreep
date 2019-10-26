@@ -21,9 +21,33 @@ from .keytiming import keystroke_timing
 from .beam import predict_phrases
 
 
+def mini_kreep(pcap, language, website=None):
+    # Load the pcap
+    pcap = load_pcap(pcap, website)
+
+    # Load the dictionary, language, and timing models
+    language, words = load_language(language)
+
+    if website is None:
+        website, keystrokes = detect_website_keystrokes(pcap)
+    else:
+        keystrokes = detect_keystrokes(pcap, website)
+
+    # Detect space keys to create word tokens
+    keystrokes['token'] = tokenize_words(keystrokes, website, max(words.keys()))
+
+    max_token = max(keystrokes['token'])
+    word_lengths = [-1 for i in range(0, max_token)]
+    word_lengths.append(0)
+    for tok in keystrokes['token']:
+        word_lengths[tok] += 1
+
+    return word_lengths, keystrokes['frame_time'].max()
+
+
 def kreep(pcap, language, bigrams, k, alpha, website=None):
     # Load the pcap
-    pcap = load_pcap(pcap)
+    pcap = load_pcap(pcap, website)
 
     # Load the dictionary, language, and timing models
     bigrams = load_bigrams(bigrams)

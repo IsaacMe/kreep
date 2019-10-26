@@ -1,3 +1,3 @@
-from .kreep import kreep
+from .kreep import kreep, mini_kreep
 
-__all__ = ['kreep']
+__all__ = ['kreep', 'mini_kreep']
