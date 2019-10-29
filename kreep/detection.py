@@ -13,10 +13,14 @@ import pandas as pd
 from itertools import product
 
 
-def google_rule(a, e, ta, te):
+def google_rule(a, e, ta, te, tp):
     d = e - a[-1]
 
-    if len(a) <= 2 and te - ta > 2000:
+    if len(a) <= 2 and te - ta > 2500:
+        return False
+
+    # TODO Validate 3000 seconds between typings
+    if te - tp > 3000:
         return False
 
     # Only one decrease allowed, only possible if gs_mss appeard already
@@ -45,7 +49,7 @@ def google_rule(a, e, ta, te):
     return False
 
 
-def baidu_rule(a, e, ta, te):
+def baidu_rule(a, e, ta, te, tp):
     d = e - a[-1]
 
     if len(a) <= 2 and te - ta > 2000:
@@ -78,7 +82,7 @@ def longest_dfa_sequence(a, t, append_rule):
 
     for i in range(1, n):
         for j in range(i):
-            if append_rule(L[j], a[i], t[j], t[i]) and len(L[i]) < len(L[j]) + 1:
+            if append_rule(L[j], a[i], t[j], t[i], t[idx[j][-1]]) and len(L[i]) < len(L[j]) + 1:
                 L[i] = L[j].copy()
                 idx[i] = idx[j].copy()
 
