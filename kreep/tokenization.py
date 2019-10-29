@@ -69,7 +69,7 @@ def detect_space(df, website, max_word_length):
         '''
         space = x['predict_space']
 
-        if (~space).sum() > MAX_WORD_LENGTH:
+        if (~space).sum() > max_word_length:
             d = x['frame_length'].diff()[1:-1]
 
             if 10 in x['cp'].values[1:-1]:
