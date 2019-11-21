@@ -19,12 +19,13 @@ def google_rule(a, e, ta, te, tp):
     if len(a) <= 2 and te - ta > 2500:
         return False
 
-    # TODO Validate 3000 seconds between typings
+    # TODO Validate 3000 miliseconds between typings
     if te - tp > 3000:
         return False
 
     # Only one decrease allowed, only possible if gs_mss appeard already
-    if d < 0:
+    # Dont know why decreases are allowed, so temp turned this of
+    if False and d < 0:
         pd = np.diff(a)
         return len(a) >= 5 and (pd < 0).sum() <= 0 and (pd >= 4).sum() >= 1
 
@@ -42,7 +43,10 @@ def google_rule(a, e, ta, te, tp):
         return True
 
     # Bigger increase is okay, if not to big!
-    if 25 > d >= 4:
+    # Made bigger increase more exact, because of known gs_mss behaviour
+    # if 25 > d >= 4:
+    estimated_gsmssd = (a[-1] - a[0]) + 8 + 1
+    if d > 4 and estimated_gsmssd + 5 > d > estimated_gsmssd - 5:
         pd = np.diff(a)
         return len(a) >= 5 and (pd >= 4).sum() <= 0
 
