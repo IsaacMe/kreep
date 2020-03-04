@@ -22,6 +22,8 @@ KEY_SET = list(string.ascii_lowercase)
 INT2KEY = dict(enumerate(sorted(KEY_SET)))
 KEY2INT = {v:k for k, v in INT2KEY.items()}
 
+IS_GOOGLE = {}
+
 
 def ip_to_str(ipv6, address):
     '''
@@ -44,17 +46,50 @@ def load_pcap(fname, website):
     else:
         rows = []
         for ts, buf in dpkt.pcapng.Reader(open(fname,'rb')):
-            eth = dpkt.ethernet.Ethernet(buf)
-            if eth.type == dpkt.ethernet.ETH_TYPE_IP or eth.type == dpkt.ethernet.ETH_TYPE_IP6:
-                ip = eth.data
-                if ip.p == dpkt.ip.IP_PROTO_TCP and (website != 'google' or is_from_google(ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst))):
-                    tcp = ip.data
-                    if len(tcp.data) > 0:
-                        rows.append((ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.src) + ':' + str(tcp.sport), ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst) + ':' + str(tcp.dport), ts*1000, len(tcp.data), ip.p))
-
+            rows.extend(parse_eth(buf, ts, website))
         df = pd.DataFrame(rows, columns=['src','dst','frame_time','frame_length','protocol'])
     return df
 
+
+def parse_eth(buf, ts, website):
+    eth = dpkt.ethernet.Ethernet(buf)
+    if eth.type == dpkt.ethernet.ETH_TYPE_IP or eth.type == dpkt.ethernet.ETH_TYPE_IP6:
+        return parse_ip(eth.data, ts, eth, website)
+    return []
+
+
+def parse_ip(ip, ts, eth, website):
+    if ip.p == dpkt.ip.IP_PROTO_TCP and (
+            website != 'google' or is_from_google(ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst))):
+        return parse_tcp(ip.data, ts, ip, eth)
+    return []
+
+
+def parse_tcp(tcp, ts, ip, eth):
+    if len(tcp.data) > 0 and tcp.dport == 443:  # TODO Ignores HTTP, only HTTPS, no QUIC support
+        return parse_tls(tcp, ts, ip, eth)
+
+    return []
+
+
+def parse_tls(tcp, ts, ip, eth):
+    try:
+        tls_records, i = dpkt.ssl.tls_multi_factory(tcp.data)
+    except (dpkt.ssl.SSL3Exception, dpkt.dpkt.NeedData, dpkt.dpkt.UnpackError):
+        return []
+
+    if i < len(tcp.data):
+        # TODO Possibly not read all TLS Records due to fragmentation
+        pass
+
+    results = []
+    for record in tls_records:
+        if record.type == 23: # TLS APP DATA
+            results.append((ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.src) + ':' + str(tcp.sport),
+                     ip_to_str(eth.type == dpkt.ethernet.ETH_TYPE_IP6, ip.dst) + ':' + str(tcp.dport), ts * 1000,
+                     len(record.data), ip.p))
+
+    return results
 
 def word2idx(word):
     return [KEY2INT[c] for c in word]
@@ -65,9 +100,15 @@ def idx2word(idx):
 
 
 def is_from_google(ip):
+    if ip in IS_GOOGLE:
+        return IS_GOOGLE[ip]
+
     try:
-        return socket.gethostbyaddr(ip)[0].endswith('1e100.net')
+        is_google = socket.gethostbyaddr(ip)[0].endswith('1e100.net')
+        IS_GOOGLE[ip] = is_google
+        return is_google
     except socket.herror:
+        IS_GOOGLE[ip] = False
         return False
 
 

@@ -15,8 +15,9 @@ import pandas as pd
 def google_detect_space(df):
     d = df['frame_length'].diff().fillna(0).astype(int)
 
-    if len(d) >= 10:
-        d.iloc[9] -= 1
+    # TODO: Ik heb hier nog geen verklaring voor, maar het klopt niet ;)
+    #if len(d) >= 10:
+    #    d.iloc[9] -= 1
 
     space = (d == 2)|(d == 3)
     return space
