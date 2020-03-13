@@ -97,7 +97,7 @@ def longest_dfa_sequence(a, t, append_rule):
 
     for x in idx:
         if len(x) > len(m):
-            m = x;
+            m = x
 
     return m
 
